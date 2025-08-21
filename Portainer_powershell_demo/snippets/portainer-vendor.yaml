@@ -1,0 +1,17 @@
+#cloud-config
+write_files:
+  - path: /opt/portainer/run.sh
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      # Ensure Docker is up (template already has Docker installed)
+      systemctl is-active --quiet docker || systemctl start docker || true
+      # Create data volume if missing
+      docker volume inspect portainer_data >/dev/null 2>&1 || docker volume create portainer_data >/dev/null
+      # Start Portainer CE (HTTPS on 9443)
+      if ! docker ps --format '{{'{{'}}.Names{{'}}'}}' | grep -q '^portainer$'; then
+        docker run -d           --name portainer           --restart=always           -p 8000:8000 -p 9443:9443           -v /var/run/docker.sock:/var/run/docker.sock           -v portainer_data:/data           portainer/portainer-ce:latest
+      fi
+runcmd:
+  - [ bash, -c, "chmod +x /opt/portainer/run.sh && /opt/portainer/run.sh" ]

@@ -1,0 +1,25 @@
+#cloud-config
+write_files:
+  - path: /opt/powershell/docker-compose.yml
+    permissions: '0644'
+    content: |
+      services:
+        pwsh:
+          image: mcr.microsoft.com/powershell:latest
+          container_name: pwsh
+          tty: true
+          stdin_open: true
+          restart: unless-stopped
+          command: ["pwsh", "-NoLogo"]
+          # Add volumes/ports here if needed, e.g.:
+          # volumes:
+          #   - /mnt/pve/pve-qnap/scripts:/scripts:ro
+  - path: /opt/powershell/up.sh
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      systemctl is-active --quiet docker || systemctl start docker || true
+      docker compose -f /opt/powershell/docker-compose.yml up -d
+runcmd:
+  - [ bash, -c, "chmod +x /opt/powershell/up.sh && /opt/powershell/up.sh" ]
