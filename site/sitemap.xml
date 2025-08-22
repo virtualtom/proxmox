@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://virtualtom.github.io/proxmox/</loc>
+         <lastmod>2025-08-22</lastmod>
+    </url>
+    <url>
+         <loc>https://virtualtom.github.io/proxmox/docker-template/</loc>
+         <lastmod>2025-08-22</lastmod>
+    </url>
+    <url>
+         <loc>https://virtualtom.github.io/proxmox/generic-clone-builder/</loc>
+         <lastmod>2025-08-22</lastmod>
+    </url>
+    <url>
+         <loc>https://virtualtom.github.io/proxmox/overview/</loc>
+         <lastmod>2025-08-22</lastmod>
+    </url>
+    <url>
+         <loc>https://virtualtom.github.io/proxmox/portainer-demo/</loc>
+         <lastmod>2025-08-22</lastmod>
+    </url>
+</urlset>
