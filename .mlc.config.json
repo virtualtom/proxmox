@@ -1,0 +1,14 @@
+{
+  "ignorePatterns": [
+    { "pattern": "^mailto:" },
+    { "pattern": "^#" },
+    { "pattern": "^\\.\\./" },
+    { "pattern": "^\\./" }
+  ],
+  "httpHeaders": [
+    {
+      "urls": ["https://raw.githubusercontent.com"],
+      "headers": { "User-Agent": "curl/8.x" }
+    }
+  ]
+}
