@@ -21,3 +21,11 @@ More: [docker-template.md](./docker-template.md) • [portainer-demo.md](./porta
 3. Use the installed helpers and snippets:
 - Scripts in /usr/lib/sbin (or your chosen --sbindir)
 - Snippets in /var/lib/vz/snippets
+## Deploying to a Proxmox node
+
+1. Place or mount this repo on the Proxmox host
+2. Run the deploy script
+
+3. Use the installed helpers and snippets:
+- Scripts in /usr/lib/sbin (or your chosen --sbindir)
+- Snippets in /var/lib/vz/snippets
