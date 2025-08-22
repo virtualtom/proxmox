@@ -6,8 +6,10 @@ theme:
   name: material
 nav:
   - Home: index.md
+  - Overview: overview.md
   - Docker Template: docker-template.md
   - Portainer Demo: portainer-demo.md
+  - Generic Clone Builder: generic-clone-builder.md
 markdown_extensions:
   - toc:
       permalink: true
