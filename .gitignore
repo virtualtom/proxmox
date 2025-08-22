@@ -1,0 +1,4 @@
+
+# Binary docs and archives are kept in GitHub Releases:
+bundles/**/**/*.docx
+templates/**/*.tar.gz
