@@ -1,4 +1,3 @@
-cat > automate_repo_restructure_no_heredoc.sh <<'BASH'
 #!/usr/bin/env bash
 set -euo pipefail
 
