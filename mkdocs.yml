@@ -1,0 +1,13 @@
+site_name: Proxmox Templates & Bundles
+site_url: https://virtualtom.github.io/proxmox/
+repo_name: virtualtom/proxmox
+repo_url: https://github.com/virtualtom/proxmox
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Docker Template: docker-template.md
+  - Portainer Demo: portainer-demo.md
+markdown_extensions:
+  - toc:
+      permalink: true

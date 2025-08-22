@@ -1,0 +1,15 @@
+name: shellcheck
+on:
+  push:
+    paths: ["scripts/**/*.sh"]
+  pull_request:
+    paths: ["scripts/**/*.sh"]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          severity: error
+          check_together: 'yes'
