@@ -13,3 +13,11 @@ bash scripts/clone_from_deb12_docker_base.sh <VMID> <NAME> <PUBKEY_PATH> <compos
 ```
 
 More: [docker-template.md](./docker-template.md) • [portainer-demo.md](./portainer-demo.md)
+## Deploying to a Proxmox node
+
+1. Place or mount this repo on the Proxmox host
+2. Run the deploy script
+
+3. Use the installed helpers and snippets:
+- Scripts in /usr/lib/sbin (or your chosen --sbindir)
+- Snippets in /var/lib/vz/snippets
