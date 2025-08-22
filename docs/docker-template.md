@@ -1,80 +1,68 @@
-# Proxmox Docker Template with Cloud-Init & Compose
+# Docker Template: Debian 12 + Docker + QEMU Guest Agent
 
-This bundle includes:
+This guide builds a Debian 12 (Bookworm) Docker-ready VM, then converts it to a Proxmox template.
 
-- `snippets/app-inline-userdata.yaml`: cloud-init snippet with inline docker-compose
-- `snippets/app-fetch-userdata.yaml`: cloud-init snippet that fetches docker-compose from URL
-- `provision_compose_clone.sh`: helper script to clone from template and inject compose
+## Prereqs
+- Proxmox VE host with a storage (example: `local-lvm`)
+- Network bridge (example: `vmbr0`)
+- SSH public key on the host (example: `/root/.ssh/id_ed25519.pub`)
 
-## Usage
-
-1. Copy `snippets/*.yaml` to your Proxmox snippets storage (e.g. `/var/lib/vz/snippets`).
-2. Copy `provision_compose_clone.sh` to your Proxmox host and `chmod +x` it.
-3. Run:
-
+## 1) Download the Debian cloud image (qcow2) on the Proxmox node
 ```bash
-./provision_compose_clone.sh 201 web01 ~/.ssh/id_ed25519.pub myweb https://example.com/docker-compose.yml
+cd /var/lib/vz/template
+mkdir -p images && cd images
+wget https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2
 ```
 
-The VM will boot, fetch or write the compose file, and auto-start it as a systemd service.
-
-## Full Files
-
-### snippets/app-inline-userdata.yaml
-
-```yaml
-#cloud-config
-package_update: true
-package_upgrade: true
-packages:
-  - docker.io
-  - docker-compose
-runcmd:
-  - [ sh, -c, "docker compose -f /opt/app/docker-compose.yml up -d" ]
-write_files:
-  - path: /opt/app/docker-compose.yml
-    permissions: '0644'
-    content: |
-      version: '3'
-      services:
-        hello:
-          image: hello-world
-
-```
-
-### snippets/app-fetch-userdata.yaml
-
-```yaml
-#cloud-config
-package_update: true
-package_upgrade: true
-packages:
-  - docker.io
-  - docker-compose
-runcmd:
-  - [ sh, -c, "curl -fsSL https://example.com/docker-compose.yml -o /opt/app/docker-compose.yml" ]
-  - [ sh, -c, "docker compose -f /opt/app/docker-compose.yml up -d" ]
-
-```
-
-### provision_compose_clone.sh
-
+## 2) Create the VM and import the disk
 ```bash
-#!/bin/bash
-# provision_compose_clone.sh <NEWID> <NEWHOSTNAME> <PUBKEYFILE> <APPNAME> <COMPOSE_URL>
-set -e
+VMID=9000
+NAME=deb12-docker-base
+STORAGE=local-lvm
+BRIDGE=vmbr0
 
-TEMPLATE_ID=9000
-NEWID=$1
-NEWHOSTNAME=$2
-PUBKEYFILE=$3
-APPNAME=$4
-COMPOSE_URL=$5
-
-qm clone $TEMPLATE_ID $NEWID --name $NEWHOSTNAME
-qm set $NEWID --ciuser dockeruser --sshkey $PUBKEYFILE
-qm set $NEWID --ipconfig0 ip=dhcp
-qm set $NEWID --cicustom "user=local:snippets/app-fetch-userdata.yaml"
-qm start $NEWID
-
+qm create "$VMID" --name "$NAME" --memory 2048 --cores 2 --net0 virtio,bridge="$BRIDGE"
+qm importdisk "$VMID" debian-12-genericcloud-amd64.qcow2 "$STORAGE"
+qm set "$VMID" --scsihw virtio-scsi-pci --scsi0 "$STORAGE:vm-$VMID-disk-0"
+qm set "$VMID" --ide2 "$STORAGE:cloudinit"
+qm set "$VMID" --boot c --bootdisk scsi0
+qm set "$VMID" --serial0 socket --vga serial0
+qm set "$VMID" --agent enabled=1
+qm set "$VMID" --sshkeys /root/.ssh/id_ed25519.pub
 ```
+
+## 3) First boot: install qemu-guest-agent, Docker and compose
+Start the VM, log in (default cloud user is `debian` unless you changed it), then run:
+```bash
+sudo -i
+apt-get update
+apt-get install -y qemu-guest-agent ca-certificates curl gnupg
+systemctl enable --now qemu-guest-agent
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+systemctl enable --now docker
+docker version
+docker compose version
+poweroff
+```
+
+## 4) Convert to a Proxmox template
+```bash
+qm template "$VMID"
+```
+
+## 5) Clone example (manual)
+```bash
+NEWID=950
+NAME=kuma-01
+STORAGE=local-lvm
+qm clone "$VMID" "$NEWID" --name "$NAME" --full 1 --storage "$STORAGE"
+qm set "$NEWID" --sshkeys /root/.ssh/id_ed25519.pub
+qm start "$NEWID"
+```
+
+Tips:
+- If you prefer to install Docker on first boot, you can attach a cloud-init snippet that runs the install commands via `runcmd`. The above method bakes Docker into the template.
